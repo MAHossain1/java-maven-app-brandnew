@@ -19,13 +19,7 @@ pipeline {
             }
         }
 
-        // stage('Checkout') {
-        //     steps {
-        //         git branch: 'main',
-        //             url: 'git@github.com:YourUser/YourRepo.git',
-        //             credentialsId: 'github-ssh'
-        //     }
-        // }
+       
 
         stage('Test') {
             steps {
