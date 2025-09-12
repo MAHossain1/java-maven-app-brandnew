@@ -43,6 +43,26 @@ pipeline {
             }
         }
 
+        stage("Build Image") {
+            when {
+                expression {
+                    BRANCH_NAME == 'main' || BRANCH_NAME == 'master'
+                }
+            }
+            steps {
+                script {
+                    echo "building the docker image and push to dockerhub" 
+                    withCredentials(
+                        [usernamePassword(credentialsId:'dockerhub-credentials', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]
+                    ) {
+                        sh 'docker build -t arman04/java-maven-app:jma-1.0.0 .'
+                        sh "echo $PASSWORD | docker login -u $USERNAME --password-stdin"
+                        sh 'docker push arman04/java-maven-app:jma-1.0.0'
+                    }
+                }
+            }
+        }
+
 
         stage("Deploy") {
             when {
