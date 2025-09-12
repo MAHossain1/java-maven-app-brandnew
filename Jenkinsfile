@@ -55,9 +55,9 @@ pipeline {
                     withCredentials(
                         [usernamePassword(credentialsId:'docker-hub-credentials', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]
                     ) {
-                        sh 'docker build -t arman04/java-maven-app:jma-1.0.0 .'
+                        sh 'docker build -t arman04/jma:1.0.0 .'
                         sh "echo $PASSWORD | docker login -u $USERNAME --password-stdin"
-                        sh 'docker push arman04/java-maven-app:jma-1.0.0'
+                        sh 'docker push arman04/jma:1.0.0'
                     }
                 }
             }
