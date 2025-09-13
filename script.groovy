@@ -2,6 +2,10 @@ def testApp() {
     echo "testing the application..."
 }
 
+
+/*
+this function come from shared library
+*/
 // def buildJar() {
 //     echo "building the application"
 //     sh 'mvn clean package'
