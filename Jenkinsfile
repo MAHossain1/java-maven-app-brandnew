@@ -34,7 +34,7 @@ pipeline {
         stage("Build") {
             when {
                 expression {
-                    BRANCH_NAME == 'main' || BRANCH_NAME == 'master'
+                    BRANCH_NAME == 'main' || BRANCH_NAME == 'jenkins-shared-library'
                 }
             }
             steps {
