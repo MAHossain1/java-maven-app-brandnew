@@ -3,26 +3,20 @@ def testApp() {
 }
 
 def buildJar() {
-    echo "building the application..."
-    sh 'mvn package'
+    echo "building the application"
+    sh 'mvn clean package'
 } 
 
 def buildImage() {
-    echo "building the docker image..."
-    withCredentials([usernamePassword(credentialsId: 'my-dockerhub-credentials', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-        sh 'docker build -t nanajanashia/demo-app:jma-2.0 .'
-        sh "echo $PASS | docker login -u $USER --password-stdin"
-        sh 'docker push nanajanashia/demo-app:jma-2.0'
+    echo "building the docker image and push to dockerhub" 
+    withCredentials(
+        [usernamePassword(credentialsId:'docker-hub-credentials', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]
+    ) {
+        sh 'docker build -t arman04/jma:1.0.0 .'
+        sh "echo $PASSWORD | docker login -u $USERNAME --password-stdin"
+        sh 'docker push arman04/jma:1.0.0'
     }
 }      
 
-def deployApp() {
-       echo "building the docker image ${params.VERSION}"
-       withCredentials([usernamePassword(credentialsId: 'my-dockerhub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-            sh 'docker build -t  arman04/java-maven-app:jma-3.0 .'
-            sh "echo $PASSWORD | docker login -u $USERNAME --password-stdin"
-            sh 'docker push arman04/java-maven-app:jma-3.0'
-    }
-} 
   
 return this
