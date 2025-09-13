@@ -26,7 +26,7 @@ pipeline {
         stage('Test') {
             steps {
                script {
-                   echo "testing the application"
+                   echo "testing the application for branch ${BRANCH_NAME}"
                }
             }
         }
