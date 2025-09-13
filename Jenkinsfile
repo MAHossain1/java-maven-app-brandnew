@@ -47,7 +47,7 @@ pipeline {
         stage("Build Image") {
             steps {
                 script {
-                    buildImage()
+                    buildImage 'arman04/jma:1.1.0'
                 }
             }
         }
@@ -56,7 +56,7 @@ pipeline {
         stage("Deploy") {
             when {
                 expression {
-                    BRANCH_NAME == 'main' || BRANCH_NAME == 'master'
+                    BRANCH_NAME == 'main' || BRANCH_NAME == 'jenkins-shared-library'
                 }
             }
             steps {
