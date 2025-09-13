@@ -1,6 +1,9 @@
 // def gv // for global variable to load script.groovy
-//def gv
+
 #!/usr/bin/env groovy  // this line is optional
+@Library('jenkins-shared-library')
+
+def gv
 
 pipeline {
     agent any
@@ -9,7 +12,6 @@ pipeline {
         maven 'Maven'
     }
 
-   
 
     stages {
 
@@ -39,7 +41,7 @@ pipeline {
             }
             steps {
                 script {
-                    gv.buildJar()
+                    buildJar()
                 }
             }
         }
@@ -47,7 +49,7 @@ pipeline {
         stage("Build Image") {
             steps {
                 script {
-                    gv.buildImage()
+                    buildImage()
                 }
             }
         }
