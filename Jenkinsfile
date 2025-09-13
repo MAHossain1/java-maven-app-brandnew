@@ -1,6 +1,4 @@
-// def gv // for global variable to load script.groovy
 
-#!/usr/bin/env groovy  // this line is optional
 @Library('jenkins-shared-library')
 
 def gv
