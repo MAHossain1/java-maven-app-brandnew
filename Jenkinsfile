@@ -26,6 +26,9 @@ pipeline {
                     sh 'mvn build-helper:parse-version versions:set \
                         -DnewVersion=\\\${parsedVersion.majorVersion}.\\\${parsedVersion.minorVersion}.\\\${parsedVersion.nextIncrementalVersion} \
                         versions:commit'
+                    def matcher = readFile('pom.xml') =~ '<version>(.*)</version>'
+                    def version = matcher[0][1]
+                    env.IMAGE_NAME = "${version}-${env.BUILD_NUMBER}"  
                 }
             }
         }
@@ -55,7 +58,12 @@ pipeline {
         stage("Build Image") {
             steps {
                 script {
-                    gv.buildImage()
+                    echo "building the docker image and push to dockerhub" 
+                    withCredentials([usernamePassword(credentialsId:'docker-hub-credentials', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
+                        sh "docker build -t arman04/$IMAGE_NAME ."
+                        sh "echo $PASSWORD | docker login -u $USERNAME --password-stdin"
+                        sh "docker push arman04/$IMAGE_NAME"
+                    }
                 }
             }
         }
