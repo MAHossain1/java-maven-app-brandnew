@@ -1,5 +1,5 @@
 // def gv // for global variable to load script.groovy
-//def gv
+def gv
 #!/usr/bin/env groovy  // this line is optional
 
 pipeline {
@@ -21,6 +21,15 @@ pipeline {
             }
         }
 
+        stage ('Increment Version') {
+            steps {
+                script {
+                    sh 'mvn build-helper:parse-version versions:set \
+                        -DnewVersion=\\\${parsedVersion.majorVersion}.\\\${parsedVersion.minorVersion}.\\\${parsedVersion.nextIncrementalVersion} \
+                        versions:commit'
+                }
+            }
+        }
         
 
         stage('Test') {
