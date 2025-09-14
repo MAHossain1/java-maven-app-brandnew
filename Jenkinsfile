@@ -37,6 +37,20 @@ pipeline {
             }
         }
 
+        stage('Commit New Version') {
+            steps {
+                script {
+                    sh '''
+                        git config user.email "jenkins@example.com"
+                        git config user.name "Jenkins CI"
+                        git add pom.xml
+                        git commit -m "Bump version [ci skip]" || echo "No changes to commit"
+                        git push origin HEAD:${BRANCH_NAME}
+                    '''
+                }
+            }
+        }
+
         stage('Test') {
             steps {
                script {
