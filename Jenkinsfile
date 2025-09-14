@@ -20,19 +20,22 @@ pipeline {
             }
         }
 
-        stage ('Increment Version') {
+
+        stage('Increment Version') {
             steps {
                 script {
-                    sh 'mvn build-helper:parse-version versions:set \
-                        -DnewVersion=\\\${parsedVersion.majorVersion}.\\\${parsedVersion.minorVersion}.\\\${parsedVersion.nextIncrementalVersion} \
-                        versions:commit'
-                    def matcher = readFile('pom.xml') =~ '<version>(.+)</version>'
-                    def version = matcher[0][1]
-                    env.IMAGE_NAME = "jma:${version}-${BUILD_NUMBER}"  
+                    sh '''
+                    mvn build-helper:parse-version versions:set \
+                        -DnewVersion=\\${parsedVersion.majorVersion}.\\${parsedVersion.minorVersion}.\\${parsedVersion.nextIncrementalVersion} \
+                        versions:commit
+                    '''
+
+                    def version = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
+                    env.IMAGE_NAME = "jma:${version}-${BUILD_NUMBER}"
+                    echo "Using IMAGE_NAME=${env.IMAGE_NAME}"
                 }
             }
         }
-        
 
         stage('Test') {
             steps {
@@ -60,9 +63,9 @@ pipeline {
                 script {
                     echo "building the docker image and push to dockerhub" 
                     withCredentials([usernamePassword(credentialsId:'docker-hub-credentials', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
-                        sh "docker build -t arman04/jma:$IMAGE_NAME ."
+                        sh "docker build -t arman04/$IMAGE_NAME ."
                         sh "echo $PASSWORD | docker login -u $USERNAME --password-stdin"
-                        sh "docker push arman04/jma:$IMAGE_NAME"
+                        sh "docker push arman04/$IMAGE_NAME"
                     }
                 }
             }
