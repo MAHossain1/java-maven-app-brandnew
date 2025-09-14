@@ -1,6 +1,5 @@
 // def gv // for global variable to load script.groovy
 def gv
-#!/usr/bin/env groovy  // this line is optional
 
 pipeline {
     agent any
