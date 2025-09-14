@@ -60,9 +60,9 @@ pipeline {
                 script {
                     echo "building the docker image and push to dockerhub" 
                     withCredentials([usernamePassword(credentialsId:'docker-hub-credentials', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
-                        sh "docker build -t arman04/$IMAGE_NAME ."
+                        sh "docker build -t arman04/jma:$IMAGE_NAME ."
                         sh "echo $PASSWORD | docker login -u $USERNAME --password-stdin"
-                        sh "docker push arman04/$IMAGE_NAME"
+                        sh "docker push arman04/jma:$IMAGE_NAME"
                     }
                 }
             }
