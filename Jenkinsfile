@@ -53,7 +53,7 @@ pipeline {
                     def matcher = readFile('pom.xml') =~ '<version>(.+)</version>'
                     if (matcher) {
                         def version = matcher[0][1]
-                        env.IMAGE_NAME = "${version}-${BUILD_NUMBER}"
+                        env.IMAGE_NAME = "jma:${version}-${BUILD_NUMBER}"
                         echo "New version: ${version}, Image name: ${env.IMAGE_NAME}"
                     } else {
                         error "Failed to parse version from pom.xml"
