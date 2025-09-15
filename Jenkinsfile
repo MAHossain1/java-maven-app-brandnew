@@ -119,7 +119,7 @@ pipeline {
         stage('Commit version update') {
             steps {
                 script {
-                    sshagent(['github-ssh-key']) {
+                    sshagent(['jenkins-ssh-github']) {
                         sh '''
                             # Configure Git
                             git config --global user.email "jenkins@example.com"
