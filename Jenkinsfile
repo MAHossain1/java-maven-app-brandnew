@@ -21,21 +21,46 @@ pipeline {
         }
 
 
+        // stage('Increment Version') {
+        //     steps {
+        //         script {
+        //             sh '''
+        //             mvn build-helper:parse-version versions:set \
+        //                 -DnewVersion=\\${parsedVersion.majorVersion}.\\${parsedVersion.minorVersion}.\\${parsedVersion.nextIncrementalVersion} \
+        //                 versions:commit
+        //             '''
+
+        //             def version = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
+        //             env.IMAGE_NAME = "jma:${version}-${BUILD_NUMBER}"
+        //             echo "Using IMAGE_NAME=${env.IMAGE_NAME}"
+        //         }
+        //     }
+        // }
+
         stage('Increment Version') {
             steps {
                 script {
+                    // Make sure we’re up to date before changing version
                     sh '''
-                    mvn build-helper:parse-version versions:set \
-                        -DnewVersion=\\${parsedVersion.majorVersion}.\\${parsedVersion.minorVersion}.\\${parsedVersion.nextIncrementalVersion} \
-                        versions:commit
+                        git fetch origin main
+                        git reset --hard origin/main
+
+                        mvn build-helper:parse-version versions:set \
+                            -DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion} \
+                            versions:commit
                     '''
 
-                    def version = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
+                    def version = sh(
+                        script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout",
+                        returnStdout: true
+                    ).trim()
+
                     env.IMAGE_NAME = "jma:${version}-${BUILD_NUMBER}"
                     echo "Using IMAGE_NAME=${env.IMAGE_NAME}"
                 }
             }
         }
+
 
 
         stage('Test') {
