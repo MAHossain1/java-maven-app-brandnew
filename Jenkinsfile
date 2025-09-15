@@ -91,31 +91,25 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'jenkins-credentials', passwordVariable: 'GIT_TOKEN', usernameVariable: 'GIT_USER')]) {
-                        sh 'git config --global user.email "jenkins@example.com"'
-                        sh 'git config --global user.name "Jenkins"'
-
-                        // Checkout main to avoid detached HEAD
-                        sh 'git checkout main || git checkout -b main'
-
-                        // Set remote with credentials
-                        sh "git remote set-url origin https://${GIT_USER}:${GIT_TOKEN}@github.com/MAHossain1/java-maven-app-brandnew.git"
-
-                        // Only commit pom.xml changes
+                        sh '''
+                            git config --global user.email "jenkins@example.com"
+                            git config --global user.name "Jenkins"
+                            git checkout main || git checkout -b main
+                        '''
                         sh 'git add pom.xml'
-
-                        // Commit if there are staged changes
                         sh '''
                             if git diff --cached --quiet; then
-                                echo "No version changes to commit"
+                                echo "No changes to commit"
                             else
                                 git commit -m "Incrementing the version of the application"
-                                git push origin main
                             fi
                         '''
+                        sh "git push https://${GIT_USER}:${GIT_TOKEN}@github.com/MAHossain1/java-maven-app-brandnew.git main"
                     }
                 }
             }
         }
+
 
         // stage('Commit version update') {
         //     steps {
