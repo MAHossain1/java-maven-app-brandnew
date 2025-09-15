@@ -87,58 +87,58 @@ pipeline {
         }
 
 
-       stage('Commit version update') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'jenkins-credentials', passwordVariable: 'GIT_TOKEN', usernameVariable: 'GIT_USER')]) {
-                        sh '''
-                            git config --global user.email "jenkins@example.com"
-                            git config --global user.name "Jenkins"
-
-                            # Make sure we are on main and up-to-date
-                            git fetch origin
-                            git checkout -B main origin/main
-
-                            # Add only pom.xml to avoid junk
-                            git add pom.xml
-
-                            if git diff --cached --quiet; then
-                                echo "No changes to commit"
-                            else
-                                git commit -m "Incrementing the version of the application"
-                                git push https://${GIT_USER}:${GIT_TOKEN}@github.com/MAHossain1/java-maven-app-brandnew.git main
-                            fi
-                        '''
-                    }
-                }
-            }
-        }
-
-
-
         // stage('Commit version update') {
         //     steps {
         //         script {
-        //             sshagent(['github-ssh-key']) {
-        //                 sh 'git config --global user.email "jenkins@example.com"'
-        //                 sh 'git config --global user.name "Jenkins"'
-        //                 sh 'git remote set-url origin git@github.com:MAHossain1/java-maven-app-again.git'
-        //                 sh 'git status'
-        //                 sh 'git add .'
-        //                 sh 'ssh-keyscan github.com >> ~/.ssh/known_hosts'
+        //             withCredentials([usernamePassword(credentialsId: 'jenkins-credentials', passwordVariable: 'GIT_TOKEN', usernameVariable: 'GIT_USER')]) {
         //                 sh '''
-        //                     if git status --porcelain | grep .; then
-        //                         git commit -m "Incrementing the version of the application"
-        //                     else
+        //                     git config --global user.email "jenkins@example.com"
+        //                     git config --global user.name "Jenkins"
+
+        //                     # Make sure we are on main and up-to-date
+        //                     git fetch origin
+        //                     git checkout -B main origin/main
+
+        //                     # Add only pom.xml to avoid junk
+        //                     git add pom.xml
+
+        //                     if git diff --cached --quiet; then
         //                         echo "No changes to commit"
+        //                     else
+        //                         git commit -m "Incrementing the version of the application"
+        //                         git push https://${GIT_USER}:${GIT_TOKEN}@github.com/MAHossain1/java-maven-app-brandnew.git main
         //                     fi
         //                 '''
-
-        //                 sh 'git push origin HEAD:jenkins-jobs'
         //             }
         //         }
         //     }
         // }
+
+
+
+        stage('Commit version update') {
+            steps {
+                script {
+                    sshagent(['jenkins-ssh-github']) {
+                        sh 'git config --global user.email "jenkins@example.com"'
+                        sh 'git config --global user.name "Jenkins"'
+                        sh 'git remote set-url origin git@github.com:MAHossain1/java-maven-app-brandnew.git'
+                        sh 'git status'
+                        sh 'git add .'
+                        sh 'ssh-keyscan github.com >> ~/.ssh/known_hosts'
+                        sh '''
+                            if git status --porcelain | grep .; then
+                                git commit -m "Incrementing the version of the application"
+                            else
+                                echo "No changes to commit"
+                            fi
+                        '''
+
+                        sh 'git push origin HEAD:main'
+                    }
+                }
+            }
+        }
 
 
     }
