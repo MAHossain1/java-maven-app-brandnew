@@ -90,7 +90,7 @@ pipeline {
         stage('Commit version update') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'jenkins-credentials', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
+                    withCredentials([usernamePassword(credentialsId: 'jenkins-credentials', passwordVariable: 'GIT_TOKEN', usernameVariable: 'GIT_USER')]) {
                         sh 'git config --global user.email "jenkins@example.com"'
                         sh 'git config --global user.name "Jenkins"'
 
@@ -98,7 +98,7 @@ pipeline {
                         sh 'git checkout main || git checkout -b main'
 
                         // Set remote with credentials
-                        sh "git remote set-url origin https://${USERNAME}:${PASSWORD}@github.com/MAHossain1/java-maven-app-brandnew.git"
+                        sh "git remote set-url origin https://${GIT_USER}:${GIT_TOKEN}@github.com/MAHossain1/java-maven-app-brandnew.git"
 
                         // Only commit pom.xml changes
                         sh 'git add pom.xml'
