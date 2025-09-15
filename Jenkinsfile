@@ -38,16 +38,26 @@ pipeline {
         // }
 
 
-        stage('Increment version') {
+        stage('Increment Version') {
             steps {
                 script {
-                    echo "Incrementing the version of the application"
-                    sh 'mvn build-helper:parse-version versions:set \
-                        -DnewVersion=\\\${parsedVersion.majorVersion}.\\\${parsedVersion.minorVersion}.\\\${parsedVersion.nextIncrementalVersion} \
-                        versions:commit'
+                    echo "Incrementing the application version"
+                    // Ensure workspace is in the correct directory and run Maven
+                    sh '''
+                        cd ${WORKSPACE}
+                        mvn --batch-mode build-helper:parse-version versions:set \
+                            -DnewVersion=\\${parsedVersion.majorVersion}.\\${parsedVersion.minorVersion}.\\${parsedVersion.nextIncrementalVersion} \
+                            versions:commit
+                    '''
+                    // Read the updated version from pom.xml
                     def matcher = readFile('pom.xml') =~ '<version>(.+)</version>'
-                    def version = matcher[0][1]
-                    env.IMAGE_NAME = "$version-$BUILD_NUMBER"
+                    if (matcher) {
+                        def version = matcher[0][1]
+                        env.IMAGE_NAME = "${version}-${BUILD_NUMBER}"
+                        echo "New version: ${version}, Image name: ${env.IMAGE_NAME}"
+                    } else {
+                        error "Failed to parse version from pom.xml"
+                    }
                 }
             }
         }
