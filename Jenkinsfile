@@ -116,29 +116,30 @@ pipeline {
 
 
 
-        stage('Commit version update') {
+       stage('Commit version update') {
             steps {
                 script {
                     sshagent(['jenkins-ssh-github']) {
-                        sh 'git config --global user.email "jenkins@example.com"'
-                        sh 'git config --global user.name "Jenkins"'
-                        sh 'git remote set-url origin git@github.com:MAHossain1/java-maven-app-brandnew.git'
-                        sh 'git status'
-                        sh 'git add .'
-                        sh 'ssh-keyscan github.com >> ~/.ssh/known_hosts'
                         sh '''
-                            if git status --porcelain | grep .; then
-                                git commit -m "Incrementing the version of the application"
-                            else
+                            git config --global user.email "jenkins@example.com"
+                            git config --global user.name "Jenkins"
+
+                            # Make sure correct remote is set
+                            git remote set-url origin git@github.com:MAHossain1/java-maven-app-brandnew.git
+
+                            git add pom.xml
+                            if git diff --cached --quiet; then
                                 echo "No changes to commit"
+                            else
+                                git commit -m "Incrementing the version of the application"
+                                git push origin main
                             fi
                         '''
-
-                        sh 'git push origin HEAD:main'
                     }
                 }
             }
         }
+
 
 
     }
