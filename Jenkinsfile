@@ -42,12 +42,16 @@ pipeline {
             steps {
                 script {
                     echo "Incrementing the application version"
-                    // Ensure workspace is in the correct directory and run Maven
+                    // Ensure workspace, verify pom.xml, and run Maven
                     sh '''
-                        cd ${WORKSPACE}
+                        echo "Current directory: $PWD"
+                        ls -l pom.xml
+                        chmod 664 pom.xml || true
                         mvn --batch-mode build-helper:parse-version versions:set \
                             -DnewVersion=\\${parsedVersion.majorVersion}.\\${parsedVersion.minorVersion}.\\${parsedVersion.nextIncrementalVersion} \
                             versions:commit
+                        echo "pom.xml after update:"
+                        cat pom.xml
                     '''
                     // Read the updated version from pom.xml
                     def matcher = readFile('pom.xml') =~ '<version>(.+)</version>'
