@@ -37,19 +37,6 @@ pipeline {
             }
         }
 
-        stage('Commit New Version') {
-            steps {
-                script {
-                    sh '''
-                        git config user.email "jenkins@example.com"
-                        git config user.name "Jenkins CI"
-                        git add pom.xml
-                        git commit -m "Bump version [ci skip]" || echo "No changes to commit"
-                        git push origin HEAD:${BRANCH_NAME}
-                    '''
-                }
-            }
-        }
 
         stage('Test') {
             steps {
@@ -98,6 +85,56 @@ pipeline {
                 }
             }
         }
+
+
+        stage('Commit version update') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'jenkins-credentials', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
+                        sh 'git config --global user.email "jenkins@example.com"'
+                        sh 'git config --global user.name "Jenkins"'
+                        sh 'git status'
+                        sh 'git branch'
+                        sh 'git config --list'
+                        sh "git remote set-url origin https://${USERNAME}:${PASSWORD}@github.com/MAHossain1/java-maven-app-brandnew.git"
+                        sh 'git add .'
+                        sh '''
+                            if git status --porcelain | grep .; then
+                                git commit -m "Incrementing the version of the application"
+                            else
+                                echo "No changes to commit"
+                            fi
+                        '''
+                        sh 'git push origin HEAD:main || echo "Push failed—check branch or remote"'
+                    }
+                }
+            }
+        }
+
+        // stage('Commit version update') {
+        //     steps {
+        //         script {
+        //             sshagent(['github-ssh-key']) {
+        //                 sh 'git config --global user.email "jenkins@example.com"'
+        //                 sh 'git config --global user.name "Jenkins"'
+        //                 sh 'git remote set-url origin git@github.com:MAHossain1/java-maven-app-again.git'
+        //                 sh 'git status'
+        //                 sh 'git add .'
+        //                 sh 'ssh-keyscan github.com >> ~/.ssh/known_hosts'
+        //                 sh '''
+        //                     if git status --porcelain | grep .; then
+        //                         git commit -m "Incrementing the version of the application"
+        //                     else
+        //                         echo "No changes to commit"
+        //                     fi
+        //                 '''
+
+        //                 sh 'git push origin HEAD:jenkins-jobs'
+        //             }
+        //         }
+        //     }
+        // }
+
 
     }
 
