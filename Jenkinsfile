@@ -42,25 +42,24 @@ pipeline {
             steps {
                 script {
                     echo "Incrementing the application version"
-                    // Ensure workspace, verify pom.xml, and run Maven
                     sh '''
-                        echo "Current directory: $PWD"
+                        echo "Workspace: $PWD"
                         ls -l pom.xml
                         chmod 664 pom.xml || true
-                        mvn --batch-mode build-helper:parse-version versions:set \
+                        mvn --batch-mode -f pom.xml build-helper:parse-version versions:set \
                             -DnewVersion=\\${parsedVersion.majorVersion}.\\${parsedVersion.minorVersion}.\\${parsedVersion.nextIncrementalVersion} \
-                            versions:commit
+                            versions:commit -DgenerateBackupPoms=false
                         echo "pom.xml after update:"
-                        cat pom.xml
+                        cat pom.xml | grep '<version>'
                     '''
-                    // Read the updated version from pom.xml
-                    def matcher = readFile('pom.xml') =~ '<version>(.+)</version>'
+                    def pomContent = readFile('pom.xml')
+                    def matcher = pomContent =~ '<version>(.+)</version>'
                     if (matcher) {
                         def version = matcher[0][1]
                         env.IMAGE_NAME = "jma:${version}-${BUILD_NUMBER}"
                         echo "New version: ${version}, Image name: ${env.IMAGE_NAME}"
                     } else {
-                        error "Failed to parse version from pom.xml"
+                        error "Failed to parse version from pom.xml:\n${pomContent}"
                     }
                 }
             }
