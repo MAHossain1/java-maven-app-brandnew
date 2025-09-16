@@ -29,6 +29,7 @@ pipeline {
                             versions:commit -DgenerateBackupPoms=false
                         echo "pom.xml after update:"
                         cat pom.xml | grep '<version>'
+                        cp pom.xml /tmp/pom.xml.after || true
                     '''
                     def version = sh(script: 'mvn --batch-mode -f pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout', returnStdout: true).trim()
                     env.IMAGE_NAME = "jma:${version}-${BUILD_NUMBER}"
@@ -109,22 +110,21 @@ pipeline {
                             # Ensure remote is correct
                             git remote set-url origin git@github.com:MAHossain1/java-maven-app-brandnew.git
 
-                            # Fetch and merge to avoid conflicts
-                            git fetch origin main
-                            git pull origin main --rebase
+                            # Ensure we're on the main branch
+                            git checkout main
 
-                            # Add only version-related files (e.g., pom.xml)
+                            # Stage the updated pom.xml
                             git add pom.xml
 
                             # Commit only if there are changes
                             if git status --porcelain | grep .; then
-                                git commit -m "Incrementing the version of the application to ${env.IMAGE_NAME}"
+                                git commit -m "Increment version to ${env.IMAGE_NAME}"
                             else
                                 echo "No changes to commit"
                             fi
 
                             # Push changes to main
-                            git push origin HEAD:main
+                            git push origin main
                         '''
                     }
                 }
