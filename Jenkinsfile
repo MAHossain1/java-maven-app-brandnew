@@ -29,16 +29,12 @@ pipeline {
                             versions:commit -DgenerateBackupPoms=false
                         echo "pom.xml after update:"
                         cat pom.xml | grep '<version>'
+                        cp pom.xml /tmp/pom.xml.after || true
                     '''
-                    def pomContent = readFile('pom.xml')
-                    def matcher = pomContent =~ '<version>(.+)</version>'
-                    if (matcher) {
-                        def version = matcher[0][1]
-                        env.IMAGE_NAME = "jma:${version}-${BUILD_NUMBER}"
-                        echo "New version: ${version}, Image name: ${env.IMAGE_NAME}"
-                    } else {
-                        error "Failed to parse version from pom.xml:\n${pomContent}"
-                    }
+                    // Parse version using Maven to avoid serialization issues
+                    def version = sh(script: 'mvn --batch-mode -f pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout', returnStdout: true).trim()
+                    env.IMAGE_NAME = "jma:${version}-${BUILD_NUMBER}"
+                    echo "New version: ${version}, Image name: ${env.IMAGE_NAME}"
                     // Stash the updated pom.xml
                     stash name: 'pom', includes: 'pom.xml'
                 }
@@ -49,6 +45,8 @@ pipeline {
             steps {
                 script {
                     echo "testing the application"
+                    unstash 'pom'
+                    sh 'cat pom.xml | grep "<version>"'
                 }
             }
         }
@@ -61,8 +59,8 @@ pipeline {
             }
             steps {
                 script {
-                    // Unstash pom.xml to ensure the updated version is used
                     unstash 'pom'
+                    sh 'cat pom.xml | grep "<version>"'
                     gv.buildJar()
                 }
             }
@@ -72,8 +70,8 @@ pipeline {
             steps {
                 script {
                     echo "building the docker image and push to dockerhub"
-                    // Unstash pom.xml for consistency
                     unstash 'pom'
+                    sh 'cat pom.xml | grep "<version>"'
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
                         sh "docker build -t arman04/$IMAGE_NAME ."
                         sh "echo $PASSWORD | docker login -u $USERNAME --password-stdin"
@@ -92,16 +90,15 @@ pipeline {
             steps {
                 script {
                     echo "deploying the application"
-                    // Unstash pom.xml if needed for deployment
                     unstash 'pom'
+                    sh 'cat pom.xml | grep "<version>"'
                 }
             }
         }
 
-        // Temporarily disable or modify Commit version update to avoid reset
         stage('Commit version update') {
             when {
-                expression { false } // Disable until you're ready to implement
+                expression { false }
             }
             steps {
                 script {
@@ -111,13 +108,6 @@ pipeline {
         }
     }
 }
-
-
-
-
-
-
-
 
 
 
