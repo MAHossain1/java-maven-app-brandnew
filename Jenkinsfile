@@ -113,9 +113,6 @@ pipeline {
                             # Stage only pom.xml
                             git add pom.xml
 
-                            # Pull with rebase to integrate remote changes
-                            git pull origin main --rebase
-
                             # Commit only if pom.xml has changes
                             if git status --porcelain pom.xml | grep .; then
                                 git commit -m "Increment version to ${env.IMAGE_NAME}"
