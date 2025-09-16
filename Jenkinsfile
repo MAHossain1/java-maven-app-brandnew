@@ -98,7 +98,7 @@ pipeline {
             steps {
                 script {
                     sshagent(['jenkins-ssh-github']) {
-                        sh '''
+                        sh """
                             # Configure Git
                             git config --global user.email "jenkins@example.com"
                             git config --global user.name "Jenkins"
@@ -110,19 +110,19 @@ pipeline {
                             # Ensure remote is correct
                             git remote set-url origin git@github.com:MAHossain1/java-maven-app-brandnew.git
 
-                            # Stage the updated pom.xml
+                            # Stage only pom.xml
                             git add pom.xml
 
-                            # Commit only if there are changes
-                            if git status --porcelain | grep .; then
+                            # Commit only if pom.xml has changes
+                            if git status --porcelain pom.xml | grep .; then
                                 git commit -m "Increment version to ${env.IMAGE_NAME}"
                             else
-                                echo "No changes to commit"
+                                echo "No changes to pom.xml to commit"
                             fi
 
                             # Push changes to main
                             git push origin main
-                        '''
+                        """
                     }
                 }
             }
