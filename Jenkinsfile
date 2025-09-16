@@ -1,4 +1,3 @@
-// def gv // for global variable to load script.groovy
 def gv
 
 pipeline {
@@ -8,10 +7,7 @@ pipeline {
         maven 'Maven'
     }
 
-   
-
     stages {
-
         stage('init') {
             steps {
                 script {
@@ -19,24 +15,6 @@ pipeline {
                 }
             }
         }
-
-
-        // stage('Increment Version') {
-        //     steps {
-        //         script {
-        //             sh '''
-        //             mvn build-helper:parse-version versions:set \
-        //                 -DnewVersion=\\${parsedVersion.majorVersion}.\\${parsedVersion.minorVersion}.\\${parsedVersion.nextIncrementalVersion} \
-        //                 versions:commit
-        //             '''
-
-        //             def version = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
-        //             env.IMAGE_NAME = "jma:${version}-${BUILD_NUMBER}"
-        //             echo "Using IMAGE_NAME=${env.IMAGE_NAME}"
-        //         }
-        //     }
-        // }
-
 
         stage('Increment Version') {
             steps {
@@ -61,18 +39,17 @@ pipeline {
                     } else {
                         error "Failed to parse version from pom.xml:\n${pomContent}"
                     }
+                    // Stash the updated pom.xml
+                    stash name: 'pom', includes: 'pom.xml'
                 }
             }
         }
 
-       
-
-
         stage('Test') {
             steps {
-               script {
-                   echo "testing the application"
-               }
+                script {
+                    echo "testing the application"
+                }
             }
         }
 
@@ -84,6 +61,8 @@ pipeline {
             }
             steps {
                 script {
+                    // Unstash pom.xml to ensure the updated version is used
+                    unstash 'pom'
                     gv.buildJar()
                 }
             }
@@ -92,8 +71,10 @@ pipeline {
         stage("Build Image") {
             steps {
                 script {
-                    echo "building the docker image and push to dockerhub" 
-                    withCredentials([usernamePassword(credentialsId:'docker-hub-credentials', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
+                    echo "building the docker image and push to dockerhub"
+                    // Unstash pom.xml for consistency
+                    unstash 'pom'
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
                         sh "docker build -t arman04/$IMAGE_NAME ."
                         sh "echo $PASSWORD | docker login -u $USERNAME --password-stdin"
                         sh "docker push arman04/$IMAGE_NAME"
@@ -101,7 +82,6 @@ pipeline {
                 }
             }
         }
-
 
         stage("Deploy") {
             when {
@@ -112,41 +92,36 @@ pipeline {
             steps {
                 script {
                     echo "deploying the application"
+                    // Unstash pom.xml if needed for deployment
+                    unstash 'pom'
                 }
             }
         }
 
-
-        // stage('Commit version update') {
-        //     steps {
-        //         script {
-        //             withCredentials([usernamePassword(credentialsId: 'jenkins-credentials', passwordVariable: 'GIT_TOKEN', usernameVariable: 'GIT_USER')]) {
-        //                 sh '''
-        //                     git config --global user.email "jenkins@example.com"
-        //                     git config --global user.name "Jenkins"
-
-        //                     # Make sure we are on main and up-to-date
-        //                     git fetch origin
-        //                     git checkout -B main origin/main
-
-        //                     # Add only pom.xml to avoid junk
-        //                     git add pom.xml
-
-        //                     if git diff --cached --quiet; then
-        //                         echo "No changes to commit"
-        //                     else
-        //                         git commit -m "Incrementing the version of the application"
-        //                         git push https://${GIT_USER}:${GIT_TOKEN}@github.com/MAHossain1/java-maven-app-brandnew.git main
-        //                     fi
-        //                 '''
-        //             }
-        //         }
-        //     }
-        // }
+        // Temporarily disable or modify Commit version update to avoid reset
+        stage('Commit version update') {
+            when {
+                expression { false } // Disable until you're ready to implement
+            }
+            steps {
+                script {
+                    echo "Skipping commit for now"
+                }
+            }
+        }
+    }
+}
 
 
 
-        // stage('Commit version update') {
+
+
+
+
+
+
+
+ // stage('Commit version update') {
         //     steps {
         //         script {
         //             sshagent(['jenkins-ssh-github']) {
@@ -183,10 +158,3 @@ pipeline {
         //         }
         //     }
         // }
-
-
-
-
-    }
-
-}
