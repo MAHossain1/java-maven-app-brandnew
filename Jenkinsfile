@@ -29,13 +29,10 @@ pipeline {
                             versions:commit -DgenerateBackupPoms=false
                         echo "pom.xml after update:"
                         cat pom.xml | grep '<version>'
-                        cp pom.xml /tmp/pom.xml.after || true
                     '''
-                    // Parse version using Maven to avoid serialization issues
                     def version = sh(script: 'mvn --batch-mode -f pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout', returnStdout: true).trim()
                     env.IMAGE_NAME = "jma:${version}-${BUILD_NUMBER}"
                     echo "New version: ${version}, Image name: ${env.IMAGE_NAME}"
-                    // Stash the updated pom.xml
                     stash name: 'pom', includes: 'pom.xml'
                 }
             }
@@ -61,8 +58,7 @@ pipeline {
                 script {
                     unstash 'pom'
                     sh 'cat pom.xml | grep "<version>"'
-                    echo "building the application"
-                    sh 'mvn clean package'
+                    gv.buildJar()
                 }
             }
         }
@@ -98,18 +94,44 @@ pipeline {
         }
 
         stage('Commit version update') {
-            when {
-                expression { false }
-            }
             steps {
                 script {
-                    echo "Skipping commit for now"
+                    sshagent(['jenkins-ssh-github']) {
+                        sh '''
+                            # Configure Git
+                            git config --global user.email "jenkins@example.com"
+                            git config --global user.name "Jenkins"
+
+                            # Add GitHub to known_hosts
+                            mkdir -p ~/.ssh
+                            ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+                            # Ensure remote is correct
+                            git remote set-url origin git@github.com:MAHossain1/java-maven-app-brandnew.git
+
+                            # Fetch and merge to avoid conflicts
+                            git fetch origin main
+                            git pull origin main --rebase
+
+                            # Add only version-related files (e.g., pom.xml)
+                            git add pom.xml
+
+                            # Commit only if there are changes
+                            if git status --porcelain | grep .; then
+                                git commit -m "Incrementing the version of the application to ${env.IMAGE_NAME}"
+                            else
+                                echo "No changes to commit"
+                            fi
+
+                            # Push changes to main
+                            git push origin HEAD:main
+                        '''
+                    }
                 }
             }
         }
     }
 }
-
 
  // stage('Commit version update') {
         //     steps {
