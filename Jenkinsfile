@@ -61,7 +61,8 @@ pipeline {
                 script {
                     unstash 'pom'
                     sh 'cat pom.xml | grep "<version>"'
-                    gv.buildJar()
+                    echo "building the application"
+                    sh 'mvn clean package'
                 }
             }
         }
@@ -108,7 +109,6 @@ pipeline {
         }
     }
 }
-
 
 
  // stage('Commit version update') {
