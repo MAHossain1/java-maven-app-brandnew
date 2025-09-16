@@ -146,43 +146,43 @@ pipeline {
 
 
 
-        stage('Commit version update') {
-            steps {
-                script {
-                    sshagent(['jenkins-ssh-github']) {
-                        sh '''
-                            # Configure Git
-                            git config --global user.email "jenkins@example.com"
-                            git config --global user.name "Jenkins"
+        // stage('Commit version update') {
+        //     steps {
+        //         script {
+        //             sshagent(['jenkins-ssh-github']) {
+        //                 sh '''
+        //                     # Configure Git
+        //                     git config --global user.email "jenkins@example.com"
+        //                     git config --global user.name "Jenkins"
 
-                            # Add GitHub to known_hosts
-                            mkdir -p ~/.ssh
-                            ssh-keyscan github.com >> ~/.ssh/known_hosts
+        //                     # Add GitHub to known_hosts
+        //                     mkdir -p ~/.ssh
+        //                     ssh-keyscan github.com >> ~/.ssh/known_hosts
 
-                            # Ensure remote is correct
-                            git remote set-url origin git@github.com:MAHossain1/java-maven-app-again.git
+        //                     # Ensure remote is correct
+        //                     git remote set-url origin git@github.com:MAHossain1/java-maven-app-again.git
 
-                            # Fetch and reset to remote main to avoid push conflicts
-                            git fetch origin main
-                            git reset --hard origin/main
+        //                     # Fetch and reset to remote main to avoid push conflicts
+        //                     git fetch origin main
+        //                     git reset --hard origin/main
 
-                            # Add only version-related files (e.g., pom.xml)
-                            git add pom.xml
+        //                     # Add only version-related files (e.g., pom.xml)
+        //                     git add pom.xml
 
-                            # Commit only if there are changes
-                            if git status --porcelain | grep .; then
-                                git commit -m "Incrementing the version of the application"
-                            else
-                                echo "No changes to commit"
-                            fi
+        //                     # Commit only if there are changes
+        //                     if git status --porcelain | grep .; then
+        //                         git commit -m "Incrementing the version of the application"
+        //                     else
+        //                         echo "No changes to commit"
+        //                     fi
 
-                            # Push changes to main
-                            git push origin HEAD:main
-                        '''
-                    }
-                }
-            }
-        }
+        //                     # Push changes to main
+        //                     git push origin HEAD:main
+        //                 '''
+        //             }
+        //         }
+        //     }
+        // }
 
 
 
