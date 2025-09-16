@@ -110,9 +110,6 @@ pipeline {
                             # Ensure remote is correct
                             git remote set-url origin git@github.com:MAHossain1/java-maven-app-brandnew.git
 
-                            # Ensure we're on the main branch
-                            git checkout main
-
                             # Stage the updated pom.xml
                             git add pom.xml
 
@@ -132,7 +129,6 @@ pipeline {
         }
     }
 }
-
  // stage('Commit version update') {
         //     steps {
         //         script {
